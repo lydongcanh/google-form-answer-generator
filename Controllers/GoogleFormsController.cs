@@ -28,13 +28,11 @@ namespace GoogleFormAnswerGenerator.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult> Get(string formUrl, int numberOfPages = 0)
+        public async Task<ActionResult> Get(string formUrl, int numberOfPages = 1)
         {
             /// Add multiple pages support.
             var parameters = new Dictionary<string, string>();
-            var pageHistory = "0";
-            for(int i = 1; i <= numberOfPages; i++)
-                pageHistory += "," + i;
+            var pageHistory = string.Join(',', Enumerable.Range(0, numberOfPages));
             parameters.Add("pageHistory", pageHistory);
 
             /// Try to post a fault request to the form to get questions & answers data.

@@ -1,17 +1,19 @@
 import React, { useState } from "react";
-import { InputGroup, Button, FormGroup } from "@blueprintjs/core";
+import { InputGroup, Button, Card, FormGroup, Tag, Label } from "@blueprintjs/core";
 import Axios from "axios";
 
 export function Home() {
 
   const [formUrl, setFormUrl] = useState("https://docs.google.com/forms/u/0/d/e/1FAIpQLSeQ1Srh0b7jOD38nf1YjzlObyw8YwKN5urj-aLCFymaG2YVEQ/formResponse");
-  const [numberOfPages, setNumberOfPages] = useState(1);
+  const [numberOfPages, setNumberOfPages] = useState(2);
   const [isLoading, setIsLoading] = useState(false);
-   
+  const [formData, setFormData] = useState([]);
+
   const search = (
-    <div>
+    <Card>
       <FormGroup
         label="Number of pages"
+        helperText="Only include page that has questions"
         labelFor="number-of-pages-input"
         labelInfo="*"
       >
@@ -21,7 +23,7 @@ export function Home() {
           type="number"
           onChange={(e) => setNumberOfPages(e.target.value)}
           value={numberOfPages}
-          min={0}
+          min={1}
           max={100}
           step={1}
         />
@@ -47,12 +49,59 @@ export function Home() {
       >
         Get Data
       </Button>
-    </div>
+    </Card>
   );
+
+  const form = () => {
+    if (!formData || formData.length < 1)
+      return;
+
+    const result = [];
+    for(const data of formData) {
+      if (data.type === "question") {
+        const children = [];
+        if (data.answers && data.answers.length > 0) {
+          //console.log(data.question, data.answers);
+          for(const answer of data.answers) {
+            children.push(
+              <InputGroup
+                readOnly
+                key={`input-group${data.entryId}-${answer}`}
+                value={Array.isArray(answer) ? answer[0] : answer}
+              />
+            );
+          }
+        } else {
+          children.push(<InputGroup key={`input-group${data.entryId}`} />);
+        }
+
+        result.push((
+          <Label key={`label-${data.entryId}`}>
+            {data.question}
+            {children}
+          </Label>
+        ));
+      } else {
+        result.push(
+          <Tag 
+            fill  
+            style={{ marginBottom: 8 }}
+            key={`tag-${data.name}`}
+          >
+            {data.name}
+          </Tag>
+        );
+      }
+    }
+    return (
+      <Card style={{ marginTop: 16 }}>{result}</Card>
+    );
+  };
 
   return (
     <div>
       {search}
+      {form()}
     </div>
   );
 
@@ -64,20 +113,34 @@ export function Home() {
       const result = eval(funcString);
   
       const dataList = result[1][1];
-      console.log(dataList);
+      const newFormData = [];
       for (const data of dataList) {
         const lastItem = data[data.length - 1];
         if (Array.isArray(lastItem)) {
-          console.log("Question", {
-            "question": data[1],
-            "answers": lastItem[0][1],
-            "entry.id": lastItem[0][0],
+          newFormData.push({
+            type: "question",
+            question: data[1],
+            answers: lastItem[0][1],
+            entryId: lastItem[0][0],
           });
+          // console.log("Question", {
+          //   "question": data[1],
+          //   "answers": lastItem[0][1],
+          //   "entry.id": lastItem[0][0],
+          // });
           continue;
         }
   
-        console.log("Session", data[1]);
+        newFormData.push({
+          type: "session",
+          name: data[1]
+        });
+        //console.log("Session", data[1]);
       }
+
+      setFormData(newFormData);
+    } catch(e) {
+      console.error(e);
     }
     finally {
       setIsLoading(false);

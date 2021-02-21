@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 export function NavMenu() {
 
   return (
-    <Navbar className="a.navbar-brand">
+    <Navbar>
       <Navbar.Group align={Alignment.CENTER}>
         <Navbar.Heading>
           <Link to="/">
@@ -14,7 +14,7 @@ export function NavMenu() {
         </Navbar.Heading>
         <Navbar.Divider />
         <Link to="/">
-          <Button className="bp3-minimal" icon="home" text="Home" />
+          <Button className="bp3-minimal" icon="home"/>
         </Link>
       </Navbar.Group>
     </Navbar>
